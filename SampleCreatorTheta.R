@@ -1,7 +1,9 @@
+
 library(edfReader)
 library(ggplot2)
 library(eegkit) ##if on Mac, requires xquartz for rgl package, installed from xquartz.org
 library(tidyverse) 
+
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
@@ -324,7 +326,9 @@ pd.28.off.signal <- data.frame(time = seq(0, nrow(data.frame(pd28.Off$Fp1$signal
                                P4 = pd28.Off$P4$signal, P8 = pd28.Off$P8$signal, CP6 = pd28.Off$CP6$signal, CP2 = pd28.Off$CP2$signal, C4 = pd28.Off$C4$signal,
                                T8 = pd28.Off$T8$signal, FC6 = pd28.Off$FC6$signal, FC2 = pd28.Off$FC2$signal, F4 = pd28.Off$F4$signal, F8 = pd28.Off$F8$signal, 
                                AF4 = pd28.Off$AF4$signal, Fp2 = pd28.Off$Fp2$signal, Fz = pd28.Off$Fz$signal, Cz = pd28.Off$Cz$signal)
+
 #bandpass butterworth filter of 1 between 4 and 8 Hz ----
+
 hc.01signal[,2:33] <- eegfilter(hc.01signal[,2:33], 512, lower = 4, upper = 8, order = 1)
 hc.02signal[,2:33] <- eegfilter(hc.02signal[,2:33], 512, lower = 4, upper = 8, order = 1)
 hc.04signal[,2:33] <- eegfilter(hc.04signal[,2:33], 512, lower = 4, upper = 8, order = 1)
@@ -357,7 +361,9 @@ pd.23.off.signal[,2:33] <- eegfilter(pd.23.off.signal[,2:33], 512, lower = 4, up
 pd.26.off.signal[,2:33] <- eegfilter(pd.26.off.signal[,2:33], 512, lower = 4, upper = 8, order = 1)
 pd.28.off.signal[,2:33] <- eegfilter(pd.28.off.signal[,2:33], 512, lower = 4, upper = 8, order = 1)
 
+
 ## split into time windows and save into raw theta folder ----
+
 for(i in seq(0, nrow(data.frame(hc1$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(hc.01signal), time >= i, time <i+2), (paste("~/PG-400/data2/rawFreqs/theta/hc.1.", i, ".csv", sep = "")))
 }
@@ -482,4 +488,3 @@ for(i in seq(0, nrow(data.frame(pd26.Off$Fp1$signal))/512-2, 2)) {
 
 for(i in seq(0, nrow(data.frame(pd28.Off$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(pd.28.off.signal), time >= i, time <i+2), (paste("~/PG-400/data2/rawFreqs/theta/pd.off.28.", i, ".csv", sep = "")))
-}

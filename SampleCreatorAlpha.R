@@ -3,7 +3,9 @@
 library(edfReader)
 library(ggplot2)
 library(eegkit) ##if on Mac, requires xquartz for rgl package, installed from xquartz.org
+
 library(tidyverse)
+
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
 #import all PD and HC EEG files----
@@ -482,4 +484,4 @@ for(i in seq(0, nrow(data.frame(pd26.Off$Fp1$signal))/512-2, 2)) {
 
 for(i in seq(0, nrow(data.frame(pd28.Off$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(pd.28.off.signal), time >= i, time <i+2), (paste("~/PG-400/data2/rawFreqs/alpha/pd.off.28.", i, ".csv", sep = "")))
-}
+
