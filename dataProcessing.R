@@ -1,4 +1,6 @@
-##run second to put all data into useable formats
+
+#Best to restart the R session before running the library inits, otherwise throws odd errors
+
 
 library(tidyverse)
 library(data.table)
@@ -15,6 +17,9 @@ PDppts <- c(3,5,6)
 
 #then list file names for the testing files
 TestingNames <- vector()
+
+
+#pull files from folder and append to a list of names
 
 for(i in HCppts){
   tempN <-   paste("hc.", i, ".", sep = "")
@@ -37,11 +42,14 @@ rm(i, temp, tempN, HCppts, PDppts)
 TrainingNames <- file_list[file_list %ni% TestingNames]
 
 ## shuffle the order of both Testing and Training
-set.seed(32)
+
+set.seed(32) #for consistency throughout the dataset ups, allows for the same label arrays to be reused
 TestingNames <- TestingNames %>% sample()
 TrainingNames <- TrainingNames %>% sample()
 ##change the dir for the two loops
-setwd("/Users/ivorym/PG-400/data2/raw")
+setwd("~/PG-400/data2/raw")
+
+
 
 #create the tensor of training data
 TrainingSet1 <- array(numeric(),c(1024,32,0))
@@ -69,7 +77,8 @@ for (i in 1701:length(TrainingNames)){
   TrainingSet3 <- abind::abind(TrainingSet3, temp_data, along = 3) #bind the new matrix to the tensor as a new slice
 }
 
-##computationally way less expensive to do the above four sets (~9 minutes each loop on 2 cores)
+##computationally way less expensive to do the above 3 sets than one large one
+
 TrainingSet <- abind::abind(TrainingSet1, TrainingSet2, TrainingSet3, along=3)
 #rm(TrainingSet1, TrainingSet2, TrainingSet3, TrainingSet4) #if you wanna clean up again
 
@@ -96,6 +105,8 @@ saveRDS(TestingSetMod, file="data2/Split A/32/1Test.Rda")
 saveRDS(TrainingNames, file="data2/Split A/1TrainLabels.Rda")
 saveRDS(TestingNames, file = "data2/Split A/1TestLabels.Rda")
 
+
+#The second fold ----
 
 file_list <- list.files(path="~/PG-400/data2/raw/")
 
@@ -186,6 +197,8 @@ saveRDS(TestingSetMod, file="data2/Split A/32/2Test.Rda")
 saveRDS(TrainingNames, file="data2/Split A/2TrainLabels.Rda")
 saveRDS(TestingNames, file = "data2/Split A/2TestLabels.Rda")
 
+#Third fold ----
+
 file_list <- list.files(path="~/PG-400/data2/raw/")
 
 #Take a  sample of six subjects (20%), three HC and three PD for testing set
@@ -275,6 +288,9 @@ saveRDS(TestingSetMod, file="data2/Split A/32/3Test.Rda")
 saveRDS(TrainingNames, file="data2/Split A/3TrainLabels.Rda")
 saveRDS(TestingNames, file = "data2/Split A/3TestLabels.Rda")
 
+
+#Fourth fold ----
+
 file_list <- list.files(path="~/PG-400/data2/raw/")
 
 #Take a  sample of six subjects (20%), three HC and three PD for testing set
@@ -363,6 +379,9 @@ saveRDS(TrainingSetMod, file="data2/Split A/32/4Train.Rda")
 saveRDS(TestingSetMod, file="data2/Split A/32/4Test.Rda")
 saveRDS(TrainingNames, file="data2/Split A/4T1rainLabels.Rda")
 saveRDS(TestingNames, file = "data2/Split A/4TestLabels.Rda")
+
+
+#ƒifth fold ----
 
 file_list <- list.files(path="~/PG-400/data2/raw/")
 

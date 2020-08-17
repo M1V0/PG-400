@@ -3,7 +3,9 @@
 library(edfReader)
 library(ggplot2)
 library(eegkit) ##if on Mac, requires xquartz for rgl package, installed from xquartz.org
-library(tidyverse) ##install tidyverse last to keep filter() from dplyr not signal...
+
+library(tidyverse)
+
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 

@@ -5,25 +5,30 @@ library(tidyverse)
 
 #Sys.setenv is required for Tensorflow, as doesn't support python 3.7 yet
 Sys.setenv(RETICULATE_PYTHON = "/usr/local/bin/python3.6")
-install_keras(tensorflow = "1.15.0") #only required first run, after that throws an error about the env, ignore
+
+install_keras(tensorflow = "1.15.0")
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-#data aug ----
+#scaling function
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 
 
-
+#initialise core folders for reading
 channels <- "32" #can be 32, 22, 13, 5, 4rear, 4front, mid, left, right or rear
-fold <- 1 #can be (1:5)
 
+#read the dataset of fold 1
+fold <- 1 
 
-all_acc <- NULL
+#create NULL objects to append data to later
+
 all_F <- NULL
 all_pre <- NULL
 all_r <- NULL
 
-#import the output labels
+
+#import the target labels
+
 TrainingNames <- readRDS(paste("data2/Split A/", fold, "TrainLabels.Rda", sep = "")
                          )
 TestingNames <- readRDS(paste("data2/Split A/", fold, "TestLabels.Rda", sep = "")
@@ -33,13 +38,18 @@ TestingNames <- readRDS(paste("data2/Split A/", fold, "TestLabels.Rda", sep = ""
 TrainingNames <- ifelse(grepl("hc", TrainingNames), 1, 0)
 TestingNames <- ifelse(grepl("hc", TestingNames), 1, 0)
 
-#import the actual data
+
+#import the data
+
 TrainingSet <- readRDS(
   paste("data2/Split A/", channels, "/", fold , "Train.Rda", sep = "")
 )
 TestingSet <- readRDS(
   paste("data2/Split A/", channels, "/", fold , "Test.Rda", sep = "")
 )
+
+
+#scale between 0 and 1 per matrix
 
 for (m in 1:length(TrainingNames)) {
   TrainingSet[m,,] <- range01(TrainingSet[m,,])
@@ -49,8 +59,12 @@ for (m in 1:length(TestingNames)) {
 }
 
 rm(m)
+
+
 #dim(TrainingSet)
 #dim(TestingSet)
+
+#create the model
 
 model <- keras_model_sequential() %>% 
   
@@ -65,7 +79,10 @@ model <- keras_model_sequential() %>%
   layer_dense(20) %>% 
   layer_dropout(.6) %>% 
   layer_dense(10) %>% 
-  layer_dense(units = 1, activation = "sigmoid") %>% #immediately compile
+
+
+  layer_dense(units = 1, activation = "sigmoid") %>% #immediately compile using the pipe
+
   compile(
     loss = "binary_crossentropy",
     optimizer = optimizer_adam(lr = 0.0005, beta_1 = 0.9, beta_2 = 0.999,
@@ -73,14 +90,17 @@ model <- keras_model_sequential() %>%
                                clipvalue = NULL),
     metrics = c("acc")
   )  
+
+#evaluate the model
 history <- model %>% fit(
   TrainingSet, TrainingNames,
   validation_split = .0,
-  #validation_data=list(TestingSet01, TestingNames),
+
   shuffle = T,
   epochs = 50, batch_size = 32, verbose = 0
 )
 
+#store results, create conf matrix, and other metrics
 
 results <- model %>% evaluate(TestingSet, TestingNames, verbose = 0)
 ConfMatrix <- table(TestingNames, prediction = predict_classes(model, TestingSet)) # creates a simple confusion matrix
@@ -89,12 +109,16 @@ Recall <- (x[1,3]/(x[1,3]+x[2,3]))*100
 Precision <- (x[1,3]/(x[1,3]+x[3,3]))*100
 fmeasure <- (2*Recall*Precision)/(Recall+Precision)/100
 
+
+#bind the results into an array
+
 all_acc <- rbind(all_acc, results$acc)
 all_r <- rbind(all_r, Recall)
 all_pre <- rbind(all_pre, Precision)
 all_F <- rbind(all_F, fmeasure)
 
-  
+#repeat the above for the second fold, and so on
+
 fold <- 2
 TrainingNames <- readRDS(paste("data2/Split A/", fold, "TrainLabels.Rda", sep = "")
 )
@@ -322,12 +346,16 @@ compile(model,
   all_r <- rbind(all_r, Recall)
   all_pre <- rbind(all_pre, Precision)
   all_F <- rbind(all_F, fmeasure)
-  
+
+#summarise the results
 
 round(all_acc*100, 2)  
 round(all_r, 2)  
 round(all_pre, 2)  
 round(all_F, 3)  
+
+
+#display the various confusion matrices
 
 ConfMatrix
 ConfMatrix2
@@ -335,4 +363,5 @@ ConfMatrix3
 ConfMatrix4
 ConfMatrix5
 
-  ##Back to the top and change the channels
+  ##Back to the top and repeat for all the channel datasets by altering line 17
+

@@ -9,6 +9,7 @@ file_list <- list.files(path="~/PG-400/data2/raw/")
 #Take a random sample of 20%
 set.seed(32)
 TestingNames <- sample(file_list)
+
 Split.i <- TestingNames[1:504]
 Split.ii <- TestingNames[505:1008]
 Split.iii <- TestingNames[1009:1512]

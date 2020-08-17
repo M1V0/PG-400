@@ -1,13 +1,17 @@
-##Run first if starting with the raw data
 
 library(edfReader)
 library(ggplot2)
 library(eegkit) ##if on Mac, requires xquartz for rgl package, installed from xquartz.org
-library(tidyverse) ##install tidyverse last to keep filter() from dplyr not signal...
+library(tidyverse)
+
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
 #import all PD and HC EEG files----
+
+##The raw data is downloaded from https://openneuro.org/datasets/ds002778/versions/1.0.1 
+###and the folder is stored in the same directory as the scripts
+
 pd3.Off <- readEdfHeader("ds002778-1.0.1/sub-pd3/ses-off/eeg/sub-pd3_ses-off_task-rest_eeg.bdf") %>% readEdfSignals()
 pd5.Off <- readEdfHeader("ds002778-1.0.1/sub-pd5/ses-off/eeg/sub-pd5_ses-off_task-rest_eeg.bdf") %>% readEdfSignals()
 pd6.Off <- readEdfHeader("ds002778-1.0.1/sub-pd6/ses-off/eeg/sub-pd6_ses-off_task-rest_eeg.bdf") %>% readEdfSignals()
@@ -40,6 +44,9 @@ hc30 <- readEdfHeader("ds002778-1.0.1/sub-hc30/ses-hc/eeg/sub-hc30_ses-hc_task-r
 hc31 <- readEdfHeader("ds002778-1.0.1/sub-hc31/ses-hc/eeg/sub-hc31_ses-hc_task-rest_eeg.bdf") %>% readEdfSignals()
 hc32 <- readEdfHeader("ds002778-1.0.1/sub-hc32/ses-hc/eeg/sub-hc32_ses-hc_task-rest_eeg.bdf") %>% readEdfSignals()
 hc33 <- readEdfHeader("ds002778-1.0.1/sub-hc33/ses-hc/eeg/sub-hc33_ses-hc_task-rest_eeg.bdf") %>% readEdfSignals()
+
+
+#Read all the signals into dataframe for easier manipulation
 
 hc.01signal <- data.frame(time = seq(0, nrow(data.frame(hc1$Fp1$signal))/512 -1/512, 1/512), 
                           FP1 = hc1$Fp1$signal, AF3 = hc1$AF3$signal, F7 = hc1$F7$signal, 
@@ -325,7 +332,8 @@ pd.28.off.signal <- data.frame(time = seq(0, nrow(data.frame(pd28.Off$Fp1$signal
                               P4 = pd28.Off$P4$signal, P8 = pd28.Off$P8$signal, CP6 = pd28.Off$CP6$signal, CP2 = pd28.Off$CP2$signal, C4 = pd28.Off$C4$signal,
                               T8 = pd28.Off$T8$signal, FC6 = pd28.Off$FC6$signal, FC2 = pd28.Off$FC2$signal, F4 = pd28.Off$F4$signal, F8 = pd28.Off$F8$signal, 
                               AF4 = pd28.Off$AF4$signal, Fp2 = pd28.Off$Fp2$signal, Fz = pd28.Off$Fz$signal, Cz = pd28.Off$Cz$signal)
-#bandpass butterworth filter of 1 ----
+
+#bandpass butterworth all data, retain the time column----
 hc.01signal[,2:33] <- eegfilter(hc.01signal[,2:33], 512, lower = 0.05, upper = 50, order = 1)
 hc.02signal[,2:33] <- eegfilter(hc.02signal[,2:33], 512, lower = 0.05, upper = 50, order = 1)
 hc.04signal[,2:33] <- eegfilter(hc.04signal[,2:33], 512, lower = 0.05, upper = 50, order = 1)
@@ -358,7 +366,9 @@ pd.23.off.signal[,2:33] <- eegfilter(pd.23.off.signal[,2:33], 512, lower = 0.05,
 pd.26.off.signal[,2:33] <- eegfilter(pd.26.off.signal[,2:33], 512, lower = 0.05, upper = 50, order = 1)
 pd.28.off.signal[,2:33] <- eegfilter(pd.28.off.signal[,2:33], 512, lower = 0.05, upper = 50, order = 1)
 
-## split the Healthy Control ----
+
+## sample each recording into 2 second windows and save into a dir called /raw/----
+
 for(i in seq(0, nrow(data.frame(hc1$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(hc.01signal), time >= i, time <i+2), (paste("~/PG-400/data2/raw/hc.1.", i, ".csv", sep = "")))
 }
@@ -419,10 +429,6 @@ for(i in seq(0, nrow(data.frame(hc32$Fp1$signal))/512-2, 2)) {
 for(i in seq(0, nrow(data.frame(hc33$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(hc.33signal), time >= i, time <i+2), (paste("~/PG-400/data2/raw/hc.33.", i, ".csv", sep = "")))
 }
-
-
-##Creating the 2s windows of data Off data ----
-
 
 for(i in seq(0, nrow(data.frame(pd3.Off$Fp1$signal))/512-2, 2)) {
   write_csv(dplyr::filter(as.data.frame(pd.03.off.signal), time >= i, time <i+2), (paste("~/PG-400/data2/raw/pd.off.3.", i, ".csv", sep = "")))
